@@ -33,7 +33,7 @@ using (SqlConnection connection = new SqlConnection(connectionString))
     Console.WriteLine($"avg price: {avg}");
 
     */
-    string last_name, first_name;
+    string last_name, first_name, birth_date;
     
 
     Console.Write("Input last name: ");
@@ -42,11 +42,38 @@ using (SqlConnection connection = new SqlConnection(connectionString))
     Console.Write("Input first name: ");
     first_name = Console.ReadLine();
 
+    Console.Write("Input birth date: ");
+    birth_date = Console.ReadLine();
+
     string sqlCommand = $@"INSERT INTO authors
-                            (last_name, first_name)
-                            VALUES('{last_name}', '{first_name}')";
+                            (last_name, first_name, birth_date)
+                            VALUES(@last_name, @first_name, @birth_date);
+                            SET @id=SCOPE_IDENTITY()";
     command.CommandText = sqlCommand;
 
+    SqlParameter firstNameParameter 
+        = new SqlParameter("@first_name", first_name);
+    SqlParameter lastNameParameter 
+        = new SqlParameter("@last_name", last_name);
+    SqlParameter birthDateParameter 
+        = new SqlParameter("@birth_date", DateTime.Parse(birth_date!));
+
+    SqlParameter idParameter = new SqlParameter()
+    {
+        ParameterName = "@id",
+        SqlDbType = System.Data.SqlDbType.Int,
+        Direction = System.Data.ParameterDirection.Output
+    };
+
+    //command.Parameters.Add(firstNameParameter);
+    //command.Parameters.Add(lastNameParameter);
+    command.Parameters.AddRange(new[] { firstNameParameter, 
+                                        lastNameParameter, 
+                                        birthDateParameter,
+                                        idParameter});
+
     await command.ExecuteNonQueryAsync();
+
+    Console.WriteLine($"Add record with id {idParameter.Value}");
 
 }
